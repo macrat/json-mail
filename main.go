@@ -66,26 +66,29 @@ func main() {
 		os.Exit(2)
 	}
 
+	l := NewLogger(os.Stdout)
+	s := NewMailScanner(os.Stdin)
+
 	m, err := NewMailer(options)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		l.Error("failed to connect server: " + err.Error())
 		os.Exit(1)
 	}
-
-	s := NewMailScanner(os.Stdin)
 
 	for {
 		if !s.Scan() {
 			if s.Err() == nil {
 				break
 			}
-			fmt.Fprintln(os.Stderr, "failed to parse:", s.Err())
+			l.Error("failed to parse: " + s.Err().Error())
 			continue
 		}
 
+		l.Mail(s.Mail())
+
 		err := m.Send(s.Mail())
 		if err != nil {
-			fmt.Println(err)
+			l.Error("failed to send: " + err.Error())
 		}
 	}
 }
