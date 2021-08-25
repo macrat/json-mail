@@ -1,50 +1,59 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 )
 
+type Options struct {
+	Server   string
+	Username string
+	Password string
+}
+
 var (
-	server   = flag.String("server", "", "SMTP server address")
-	username = flag.String("username", "", "Username for login SMTP server")
-	password = flag.String("password", "", "Password for login SMTP server")
+	options = Options{}
 )
 
-func parseEnvironmentVariable() {
-	if *server == "" {
-		*server = os.Getenv("JSON_MAIL_SERVER")
+func init() {
+	flag.StringVar(&options.Server, "server", "", "SMTP server address")
+	flag.StringVar(&options.Username, "username", "", "Username for login SMTP server")
+	flag.StringVar(&options.Password, "password", "", "Password for login SMTP server")
+}
+
+func (opts *Options) ParseEnv() {
+	if opts.Server == "" {
+		opts.Server = os.Getenv("JSON_MAIL_SERVER")
 	}
-	if *username == "" {
-		*username = os.Getenv("JSON_MAIL_USERNAME")
+	if opts.Username == "" {
+		opts.Username = os.Getenv("JSON_MAIL_USERNAME")
 	}
-	if *password == "" {
-		*password = os.Getenv("JSON_MAIL_PASSWORD")
+	if opts.Password == "" {
+		opts.Password = os.Getenv("JSON_MAIL_PASSWORD")
 	}
 }
 
-func checkFlagsIfOK(out io.Writer) (ok bool) {
+func (opts *Options) Assert(out io.Writer) (ok bool) {
 	var msgs []string
-	if *server == "" {
+	if opts.Server == "" {
 		msgs = append(msgs, "--server is required.")
 	}
-	if *username == "" {
+	if opts.Username == "" {
 		msgs = append(msgs, "--username is required.")
 	}
-	if *password == "" {
+	if opts.Password == "" {
 		msgs = append(msgs, "--password is required.")
 	}
 
 	if msgs != nil {
-		fmt.Fprintln(os.Stderr, "error:")
+		fmt.Fprintln(out, "error:")
 		for _, m := range msgs {
-			fmt.Fprintln(os.Stderr, " ", m)
+			fmt.Fprintln(out, " ", m)
 		}
-		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, "Please see --help to more detail.")
+		fmt.Fprintln(out)
+		fmt.Fprintln(out, "Please see --help to more detail.")
 	}
 
 	return msgs == nil
@@ -52,25 +61,31 @@ func checkFlagsIfOK(out io.Writer) (ok bool) {
 
 func main() {
 	flag.Parse()
-	parseEnvironmentVariable()
-	if !checkFlagsIfOK(os.Stderr) {
+	options.ParseEnv()
+	if !options.Assert(os.Stderr) {
 		os.Exit(2)
 	}
 
-	fmt.Println("server:", *server)
-	fmt.Println("username:", *username)
-	fmt.Println("password:", *password)
+	m, err := NewMailer(options)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 
 	s := NewMailScanner(os.Stdin)
 
-	for s.Scan() {
-		x, err := json.MarshalIndent(s.Mail(), "", "  ")
-		if err != nil {
-			fmt.Println("error:", err)
+	for {
+		if !s.Scan() {
+			if s.Err() == nil {
+				break
+			}
+			fmt.Fprintln(os.Stderr, "failed to parse:", s.Err())
 			continue
 		}
-		fmt.Println(string(x))
-		fmt.Println()
+
+		err := m.Send(s.Mail())
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
-	fmt.Println(s.Err())
 }

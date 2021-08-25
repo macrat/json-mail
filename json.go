@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/mail"
+	"strings"
 )
 
 type StringList []string
@@ -22,20 +24,35 @@ func (l *StringList) UnmarshalJSON(text []byte) error {
 	return nil
 }
 
-type AddressList []*mail.Address
+type Address mail.Address
 
-func (l AddressList) MarshalJSON() ([]byte, error) {
-	xs := make([]string, len(l))
-	for i, x := range l {
-		if x.Name != "" {
-			xs[i] = x.String()
-		} else {
-			xs[i] = x.Address
-		}
+func (a *Address) String() string {
+	if a.Name != "" {
+		return (*mail.Address)(a).String()
+	} else {
+		return a.Address
+	}
+}
+
+func (a *Address) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.String())
+}
+
+func (a *Address) UnmarshalJSON(text []byte) error {
+	var s string
+	if err := json.Unmarshal(text, &s); err != nil {
+		return err
 	}
 
-	return json.Marshal(xs)
+	addr, err := mail.ParseAddress(s)
+	if err != nil {
+		return err
+	}
+	*a = Address(*addr)
+	return nil
 }
+
+type AddressList []*Address
 
 func (l *AddressList) UnmarshalJSON(text []byte) error {
 	var xs StringList
@@ -44,27 +61,45 @@ func (l *AddressList) UnmarshalJSON(text []byte) error {
 	}
 
 	for _, x := range xs {
-		if ys, err := mail.ParseAddressList(x); err != nil {
+		addrs, err := mail.ParseAddressList(x)
+		if err != nil {
 			if err.Error() == "mail: no address" {
 				continue
 			}
 			return err
-		} else {
-			*l = append(*l, ys...)
+		}
+
+		for _, a := range addrs {
+			*l = append(*l, (*Address)(a))
 		}
 	}
 
 	return nil
 }
 
+func (l *AddressList) String() string {
+	xs := make([]string, len(*l))
+	for i, x := range *l {
+		xs[i] = x.String()
+	}
+	return strings.Join(xs, ", ")
+}
+
 type Mail struct {
-	To          AddressList   `json:"to,omitempty"`
-	Cc          AddressList   `json:"cc,omitempty"`
-	Bcc         AddressList   `json:"bcc,omitempty"`
-	From        *mail.Address `json:"from,omitempty"`
-	Subject     string        `json:"subject,omitempty"`
-	Body        string        `json:"body"`
-	Attachments StringList    `json:"attachments,omitempty"`
+	To          AddressList `json:"to,omitempty"`
+	Cc          AddressList `json:"cc,omitempty"`
+	Bcc         AddressList `json:"bcc,omitempty"`
+	From        *Address    `json:"from,omitempty"`
+	Subject     string      `json:"subject,omitempty"`
+	Body        string      `json:"body,omitempty"`
+	Attachments StringList  `json:"attachments,omitempty"`
+}
+
+func (m Mail) Valid() error {
+	if len(m.To) == 0 {
+		return errors.New("field `to` is required")
+	}
+	return nil
 }
 
 type MailList []Mail
@@ -123,6 +158,10 @@ func (s *MailScanner) Scan() bool {
 		if len(s.buf) > 0 {
 			break
 		}
+	}
+
+	if s.err = s.buf[0].Valid(); s.err != nil {
+		return false
 	}
 
 	return true

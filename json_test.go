@@ -47,10 +47,10 @@ func TestAddressList(t *testing.T) {
 		Input  string
 		Output string
 	}{
-		{`""`, `[]`},
-		{`["", ""]`, `[]`},
-		{`[]`, `[]`},
-		{`null`, `[]`},
+		{`""`, `null`},
+		{`["", ""]`, `null`},
+		{`[]`, `null`},
+		{`null`, `null`},
 		{`"test@example.com"`, `["test@example.com"]`},
 		{`"hello <world@example.com>"`, `["\"hello\" \u003cworld@example.com\u003e"]`},
 		{`" foo@example.com, hello <world@example.com>"`, `["foo@example.com","\"hello\" \u003cworld@example.com\u003e"]`},
@@ -85,13 +85,13 @@ func TestMailList(t *testing.T) {
 	}{
 		{`[]`, `[]`},
 		{`null`, `[]`},
-		{`{}`, `[{"body":""}]`},
-		{`[{}]`, `[{"body":""}]`},
-		{`[{}, {}]`, `[{"body":""},{"body":""}]`},
-		{`[{"subject":"hello"}]`, `[{"subject":"hello","body":""}]`},
+		{`{}`, `[{}]`},
+		{`[{}]`, `[{}]`},
+		{`[{}, {}]`, `[{},{}]`},
+		{`[{"subject":"hello"}]`, `[{"subject":"hello"}]`},
 		{
-			`[{"to": "a@example.com,  b@example.com"},           {"to":["c@example.com","d@example.com"]}]`,
-			`[{"to":["a@example.com","b@example.com"],"body":""},{"to":["c@example.com","d@example.com"],"body":""}]`,
+			`[{"to": "a@example.com,  b@example.com"}, {"to":["c@example.com","d@example.com"]}]`,
+			`[{"to":["a@example.com","b@example.com"]},{"to":["c@example.com","d@example.com"]}]`,
 		},
 	}
 
@@ -121,9 +121,9 @@ func TestMailScanner(t *testing.T) {
 		Bodies []string
 	}{
 		{``, []string{}},
-		{`{"body":"hello"}`, []string{"hello"}},
-		{`{"body":"hello"} {"body": "world"}`, []string{"hello", "world"}},
-		{`[{"body":"hello"},{"body":"world"}]`, []string{"hello", "world"}},
+		{`{"to":"a@example.com","body":"hello"}`, []string{"hello"}},
+		{`{"to":"a@example.com","body":"hello"} {"to":"a@example.com","body": "world"}`, []string{"hello", "world"}},
+		{`[{"to":"a@example.com","body":"hello"},{"to":"a@example.com","body":"world"}]`, []string{"hello", "world"}},
 	}
 
 	for _, tt := range tests {
