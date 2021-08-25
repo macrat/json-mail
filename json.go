@@ -2,10 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"net/mail"
 	"io"
+	"net/mail"
 )
-
 
 type StringList []string
 

@@ -1,19 +1,19 @@
 package main_test
 
 import (
-	"strings"
-	"reflect"
-	"testing"
 	"encoding/json"
+	"reflect"
+	"strings"
+	"testing"
 
 	"github.com/macrat/json-mail"
 )
 
 func TestStringList(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		Input  string
 		Output string
-	} {
+	}{
 		{`""`, `[""]`},
 		{`[]`, `[]`},
 		{`"hello world"`, `["hello world"]`},
@@ -43,10 +43,10 @@ func TestStringList(t *testing.T) {
 }
 
 func TestAddressList(t *testing.T) {
-	tests := []struct{
-		Input string
+	tests := []struct {
+		Input  string
 		Output string
-	} {
+	}{
 		{`""`, `[]`},
 		{`["", ""]`, `[]`},
 		{`[]`, `[]`},
@@ -79,10 +79,10 @@ func TestAddressList(t *testing.T) {
 }
 
 func TestMailList(t *testing.T) {
-	tests := []struct{
-		Input string
+	tests := []struct {
+		Input  string
 		Output string
-	} {
+	}{
 		{`[]`, `[]`},
 		{`null`, `[]`},
 		{`{}`, `[{"body":""}]`},
@@ -116,10 +116,10 @@ func TestMailList(t *testing.T) {
 }
 
 func TestMailScanner(t *testing.T) {
-	tests := []struct{
-		Input string
+	tests := []struct {
+		Input  string
 		Bodies []string
-	} {
+	}{
 		{``, []string{}},
 		{`{"body":"hello"}`, []string{"hello"}},
 		{`{"body":"hello"} {"body": "world"}`, []string{"hello", "world"}},
