@@ -25,13 +25,13 @@ func init() {
 
 func (opts *Options) ParseEnv() {
 	if opts.Server == "" {
-		opts.Server = os.Getenv("JSON_MAIL_SERVER")
+		opts.Server = os.Getenv("JSON2MAIL_SERVER")
 	}
 	if opts.Username == "" {
-		opts.Username = os.Getenv("JSON_MAIL_USERNAME")
+		opts.Username = os.Getenv("JSON2MAIL_USERNAME")
 	}
 	if opts.Password == "" {
-		opts.Password = os.Getenv("JSON_MAIL_PASSWORD")
+		opts.Password = os.Getenv("JSON2MAIL_PASSWORD")
 	}
 }
 

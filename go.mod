@@ -1,4 +1,4 @@
-module github.com/macrat/json-mail
+module github.com/macrat/json2mail
 
 go 1.16
 

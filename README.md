@@ -1,5 +1,5 @@
-JSON Mail
-=========
+JSON To Mail
+============
 
 Send many emails from JSON data.
 
@@ -14,13 +14,13 @@ $ cat ./mails.csv
   "body": "hello!\nthis is a test"
 }]
 
-$ cat ./mails.csv | json-mail -server smtp.example.com:465 -username you@example.com -password your_p@ssword
+$ cat ./mails.csv | json2mail -server smtp.example.com -username you@example.com -password your_p@ssword
 EOS
 ```
 
 ```
-$ export JSON_MAIL_SERVER="smtp.example.com:465" JSON_MAIL_USERNAME="you@example.com" JSON_MAIL_PASSWORD="your_p@ssword"
+$ export JSON2MAIL_SERVER="smtp.example.com" JSON2MAIL_USERNAME="you@example.com" JSON2MAIL_PASSWORD="your_p@ssword"
 
-$ cat ./mails.csv | json-mail
+$ cat ./mails.csv | json2mail
 EOS
 ```

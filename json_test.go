@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/macrat/json-mail"
+	"github.com/macrat/json2mail"
 )
 
 func TestStringList(t *testing.T) {
