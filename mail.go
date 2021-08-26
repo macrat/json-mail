@@ -1,11 +1,16 @@
 package main
 
 import (
+	"errors"
 	"net"
 	"strconv"
 	"strings"
 
 	"gopkg.in/mail.v2"
+)
+
+var (
+	ErrTLSUnsupported = errors.New("This server does not support secure connection. Please use -allow-insecure option if you want to allow.")
 )
 
 type Mailer struct {
@@ -30,7 +35,16 @@ func NewMailer(options Options) (*Mailer, error) {
 		defaultFrom = defaultFrom + "@" + host
 	}
 
-	conn, err := mail.NewDialer(host, p, options.Username, options.Password).Dial()
+	d := mail.NewDialer(host, p, options.Username, options.Password)
+	d.StartTLSPolicy = mail.MandatoryStartTLS
+	if options.AllowInsecure {
+		d.StartTLSPolicy = mail.OpportunisticStartTLS
+	}
+
+	conn, err := d.Dial()
+	if _, ok := err.(mail.StartTLSUnsupportedError); ok {
+		return nil, ErrTLSUnsupported
+	}
 	return &Mailer{
 		options:     options,
 		conn:        conn,
