@@ -24,9 +24,9 @@ var (
 
 func init() {
 	flag.StringVar(&options.Server, "server", "", "SMTP server address")
-	flag.StringVar(&options.Username, "username", "", "Username for login SMTP server")
-	flag.StringVar(&options.Password, "password", "", "Password for login SMTP server")
-	flag.BoolVar(&options.AllowInsecure, "allow-insecure", false, "Allow communication without encryption (NOT recommended)")
+	flag.StringVar(&options.Username, "username", "", "Username for login to SMTP server")
+	flag.StringVar(&options.Password, "password", "", "Password for login to SMTP server")
+	flag.BoolVar(&options.AllowInsecure, "allow-insecure", false, "Allow connection without encryption (NOT recommended)")
 }
 
 func (opts *Options) ParseEnv() {
