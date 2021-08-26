@@ -81,20 +81,20 @@ func main() {
 
 	m, err := NewMailer(options)
 	if err != nil {
-		l.Error("failed to connect server: " + err.Error())
+		l.Error("failed to connect server: "+err.Error(), options.Server)
 		os.Exit(1)
 	}
 
 	for s.Scan() {
-		l.Mail(s.Mail())
-
 		err := m.Send(s.Mail())
 		if err != nil {
-			l.Error("failed to send: " + err.Error())
+			l.Error("failed to send: "+err.Error(), s.Mail())
+		} else {
+			l.Mail(s.Mail())
 		}
 	}
 
 	if s.Err() != nil {
-		l.Error(s.Err().Error())
+		l.Error(s.Err().Error(), s.CurrentString())
 	}
 }

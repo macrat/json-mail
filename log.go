@@ -23,14 +23,16 @@ func getTime() string {
 }
 
 type errorLog struct {
-	Timestamp string `json:"timestamp"`
-	Error     string `json:"error"`
+	Timestamp string      `json:"timestamp"`
+	Error     string      `json:"error"`
+	Input     interface{} `json:"input_data"`
 }
 
-func (l *Logger) Error(msg string) {
+func (l *Logger) Error(msg string, input interface{}) {
 	l.write(errorLog{
 		Timestamp: getTime(),
 		Error:     msg,
+		Input:     input,
 	})
 }
 

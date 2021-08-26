@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
@@ -136,14 +137,18 @@ func (l *MailList) UnmarshalJSON(text []byte) error {
 }
 
 type MailScanner struct {
-	decoder *json.Decoder
-	buf     MailList
-	err     error
+	decoder    *json.Decoder
+	readerCopy *bytes.Buffer
+	buf        MailList
+	err        error
 }
 
 func NewMailScanner(r io.Reader) *MailScanner {
+	copied := bytes.NewBuffer([]byte{})
+
 	return &MailScanner{
-		decoder: json.NewDecoder(r),
+		readerCopy: copied,
+		decoder:    json.NewDecoder(io.TeeReader(r, copied)),
 	}
 }
 
@@ -156,6 +161,7 @@ func (s *MailScanner) Scan() bool {
 	}
 
 	for {
+		s.readerCopy.Reset()
 		s.err = s.decoder.Decode(&s.buf)
 		if s.err == io.EOF {
 			s.err = nil
@@ -174,6 +180,10 @@ func (s *MailScanner) Scan() bool {
 
 func (s *MailScanner) Err() error {
 	return s.err
+}
+
+func (s *MailScanner) CurrentString() string {
+	return s.readerCopy.String()
 }
 
 func (s *MailScanner) Mail() Mail {
