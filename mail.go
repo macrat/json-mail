@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-mail/mail"
+	"gopkg.in/mail.v2"
 )
 
 type Mailer struct {
