@@ -95,7 +95,7 @@ type Mail struct {
 	Attachments StringList  `json:"attachments,omitempty"`
 }
 
-func (m Mail) Valid() error {
+func (m Mail) Validate() error {
 	if len(m.To) == 0 {
 		return errors.New("field `to` is required")
 	}
@@ -103,6 +103,15 @@ func (m Mail) Valid() error {
 }
 
 type MailList []Mail
+
+func (l MailList) Validate() error {
+	for _, m := range l {
+		if err := m.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func (l MailList) MarshalJSON() ([]byte, error) {
 	if l == nil {
@@ -114,7 +123,7 @@ func (l MailList) MarshalJSON() ([]byte, error) {
 
 func (l *MailList) UnmarshalJSON(text []byte) error {
 	if err := json.Unmarshal(text, (*[]Mail)(l)); err == nil {
-		return nil
+		return l.Validate()
 	}
 
 	var m Mail
@@ -123,7 +132,7 @@ func (l *MailList) UnmarshalJSON(text []byte) error {
 	}
 
 	*l = []Mail{m}
-	return nil
+	return l.Validate()
 }
 
 type MailScanner struct {
@@ -158,10 +167,6 @@ func (s *MailScanner) Scan() bool {
 		if len(s.buf) > 0 {
 			break
 		}
-	}
-
-	if s.err = s.buf[0].Valid(); s.err != nil {
-		return false
 	}
 
 	return true

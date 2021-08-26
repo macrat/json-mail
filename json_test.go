@@ -138,10 +138,12 @@ func TestMailList(t *testing.T) {
 	}{
 		{`[]`, `[]`},
 		{`null`, `[]`},
-		{`{}`, `[{}]`},
-		{`[{}]`, `[{}]`},
-		{`[{}, {}]`, `[{},{}]`},
-		{`[{"subject":"hello"}]`, `[{"subject":"hello"}]`},
+		{`{"to":"a@example.com"}`, `[{"to":["a@example.com"]}]`},
+		{`[{"to":"a@example.com"}]`, `[{"to":["a@example.com"]}]`},
+		{
+			`[{"to":"a@example.com"}, {"to":"b@example.com"}]`,
+			`[{"to":["a@example.com"]},{"to":["b@example.com"]}]`,
+		},
 		{
 			`[{"to": "a@example.com,  b@example.com"}, {"to":["c@example.com","d@example.com"]}]`,
 			`[{"to":["a@example.com","b@example.com"]},{"to":["c@example.com","d@example.com"]}]`,
