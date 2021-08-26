@@ -42,20 +42,69 @@ func TestStringList(t *testing.T) {
 	}
 }
 
-func TestAddressList(t *testing.T) {
+func TestAddress(t *testing.T) {
 	tests := []struct {
 		Input  string
 		Output string
 	}{
-		{`""`, `null`},
-		{`["", ""]`, `null`},
-		{`[]`, `null`},
-		{`null`, `null`},
-		{`"test@example.com"`, `["test@example.com"]`},
-		{`"hello <world@example.com>"`, `["\"hello\" \u003cworld@example.com\u003e"]`},
-		{`" foo@example.com, hello <world@example.com>"`, `["foo@example.com","\"hello\" \u003cworld@example.com\u003e"]`},
-		{`["foo@example.com, hello <world@example.com>"]`, `["foo@example.com","\"hello\" \u003cworld@example.com\u003e"]`},
-		{`["bar@example.com", "foo@example.com, hello <world@example.com>"]`, `["bar@example.com","foo@example.com","\"hello\" \u003cworld@example.com\u003e"]`},
+		{`"abc@example.com"`, `"abc@example.com"`},
+		{`"<abc@example.com>"`, `"abc@example.com"`},
+		{`"\"\" <abc@example.com>"`, `"abc@example.com"`},
+		{`"\"hello\" <world@example.com>"`, `"\"hello\" \u003cworld@example.com\u003e"`},
+		{`"hello <world@example.com>"`, `"\"hello\" \u003cworld@example.com\u003e"`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.Input, func(t *testing.T) {
+			m := &main.Address{}
+
+			if err := json.Unmarshal([]byte(tt.Input), m); err != nil {
+				t.Fatalf("failed to unmarshal: %s", err)
+			}
+
+			j, err := json.Marshal(m)
+			if err != nil {
+				t.Fatalf("failed to marshal: %s", err)
+			}
+
+			if string(j) != tt.Output {
+				t.Errorf("unexpected result:\nexpected: %s\n but got: %s", tt.Output, j)
+			}
+		})
+	}
+}
+
+func TestAddressList(t *testing.T) {
+	tests := []struct {
+		Input  string
+		JSON   string
+		String string
+	}{
+		{`""`, `null`, ``},
+		{`["", ""]`, `null`, ``},
+		{`[]`, `null`, ``},
+		{`null`, `null`, ``},
+		{`"test@example.com"`, `["test@example.com"]`, `test@example.com`},
+		{
+			`"hello <world@example.com>"`,
+			`["\"hello\" \u003cworld@example.com\u003e"]`,
+			`"hello" <world@example.com>`,
+		},
+		{
+			`" foo@example.com, hello <world@example.com>"`,
+			`["foo@example.com","\"hello\" \u003cworld@example.com\u003e"]`,
+			`foo@example.com, "hello" <world@example.com>`,
+		},
+		{
+			`["foo@example.com, hello <world@example.com>"]`,
+			`["foo@example.com","\"hello\" \u003cworld@example.com\u003e"]`,
+			`foo@example.com, "hello" <world@example.com>`,
+		},
+		{
+			`["bar@example.com", "foo@example.com, hello <world@example.com>"]`,
+			`["bar@example.com","foo@example.com","\"hello\" \u003cworld@example.com\u003e"]`,
+			`bar@example.com, foo@example.com, "hello" <world@example.com>`,
+		},
 	}
 
 	for _, tt := range tests {
@@ -66,13 +115,17 @@ func TestAddressList(t *testing.T) {
 				t.Fatalf("failed to unmarshal: %s", err)
 			}
 
+			if l.String() != tt.String {
+				t.Errorf("unexpected String result:\nexpected: %s\n but got: %s", tt.String, l)
+			}
+
 			j, err := json.Marshal(l)
 			if err != nil {
 				t.Fatalf("failed to marshal: %s", err)
 			}
 
-			if string(j) != tt.Output {
-				t.Errorf("unexpected result:\nexpected: %s\n but got: %s", tt.Output, j)
+			if string(j) != tt.JSON {
+				t.Errorf("unexpected marshal result:\nexpected: %s\n but got: %s", tt.JSON, j)
 			}
 		})
 	}
