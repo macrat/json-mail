@@ -14,7 +14,11 @@ type Options struct {
 }
 
 var (
-	options = Options{}
+	version = "HEAD"
+	commit  = "unknown"
+
+	options     = Options{}
+	showVersion = flag.Bool("version", false, "Show version information and exit")
 )
 
 func init() {
@@ -53,7 +57,7 @@ func (opts *Options) Assert(out io.Writer) (ok bool) {
 			fmt.Fprintln(out, " ", m)
 		}
 		fmt.Fprintln(out)
-		fmt.Fprintln(out, "Please see --help to more detail.")
+		fmt.Fprintln(out, "Please see -help to more detail.")
 	}
 
 	return msgs == nil
@@ -61,6 +65,12 @@ func (opts *Options) Assert(out io.Writer) (ok bool) {
 
 func main() {
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Fprintf(os.Stdout, "json2mail %s (%s)\n", version, commit)
+		os.Exit(0)
+	}
+
 	options.ParseEnv()
 	if !options.Assert(os.Stderr) {
 		os.Exit(2)
