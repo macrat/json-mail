@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -13,13 +14,17 @@ var (
 	ErrTLSUnsupported = errors.New("This server does not support secure connection. Please use -allow-insecure option if you want to allow.")
 )
 
-type Mailer struct {
-	options     Options
-	conn        mail.SendCloser
-	DefaultFrom string
+type Mailer interface {
+	io.Closer
+
+	Send(Mail) error
 }
 
-func NewMailer(options Options) (*Mailer, error) {
+func NewMailer(options Options) (Mailer, error) {
+	if options.DryRun {
+		return FakeMailer{}, nil
+	}
+
 	host, port, err := net.SplitHostPort(options.Server)
 	if err != nil {
 		host = options.Server
@@ -45,18 +50,24 @@ func NewMailer(options Options) (*Mailer, error) {
 	if _, ok := err.(mail.StartTLSUnsupportedError); ok {
 		return nil, ErrTLSUnsupported
 	}
-	return &Mailer{
+	return &RealMailer{
 		options:     options,
 		conn:        conn,
 		DefaultFrom: defaultFrom,
 	}, err
 }
 
-func (mailer *Mailer) Close() error {
+type RealMailer struct {
+	options     Options
+	conn        mail.SendCloser
+	DefaultFrom string
+}
+
+func (mailer *RealMailer) Close() error {
 	return mailer.conn.Close()
 }
 
-func (mailer *Mailer) Send(m Mail) error {
+func (mailer *RealMailer) Send(m Mail) error {
 	m2 := mail.NewMessage()
 
 	m2.SetHeader("To", m.To.String())
@@ -82,4 +93,14 @@ func (mailer *Mailer) Send(m Mail) error {
 	}
 
 	return mail.Send(mailer.conn, m2)
+}
+
+type FakeMailer struct{}
+
+func (mailer FakeMailer) Close() error {
+	return nil
+}
+
+func (mailer FakeMailer) Send(m Mail) error {
+	return nil
 }

@@ -12,6 +12,7 @@ type Options struct {
 	Username      string
 	Password      string
 	AllowInsecure bool
+	DryRun        bool
 }
 
 var (
@@ -27,6 +28,7 @@ func init() {
 	flag.StringVar(&options.Username, "username", "", "Username for login to SMTP server")
 	flag.StringVar(&options.Password, "password", "", "Password for login to SMTP server")
 	flag.BoolVar(&options.AllowInsecure, "allow-insecure", false, "Allow connection without encryption (NOT recommended)")
+	flag.BoolVar(&options.DryRun, "dry-run", false, "Run json2mail without server connection to testing json data")
 }
 
 func (opts *Options) ParseEnv() {
