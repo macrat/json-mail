@@ -85,20 +85,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	for {
-		if !s.Scan() {
-			if s.Err() == nil {
-				break
-			}
-			l.Error("failed to parse: " + s.Err().Error())
-			continue
-		}
-
+	for s.Scan() {
 		l.Mail(s.Mail())
 
 		err := m.Send(s.Mail())
 		if err != nil {
 			l.Error("failed to send: " + err.Error())
 		}
+	}
+
+	if s.Err() != nil {
+		l.Error(s.Err().Error())
 	}
 }
