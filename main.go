@@ -46,13 +46,13 @@ func (opts *Options) ParseEnv() {
 func (opts *Options) Assert(out io.Writer) (ok bool) {
 	var msgs []string
 	if opts.Server == "" {
-		msgs = append(msgs, "--server is required.")
+		msgs = append(msgs, "-server is required.")
 	}
 	if opts.Username == "" {
-		msgs = append(msgs, "--username is required.")
+		msgs = append(msgs, "-username is required.")
 	}
 	if opts.Password == "" {
-		msgs = append(msgs, "--password is required.")
+		msgs = append(msgs, "-password is required.")
 	}
 
 	if msgs != nil {
