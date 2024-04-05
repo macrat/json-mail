@@ -11,10 +11,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.16.x
-      - uses: actions/checkout@v2
+          go-version: 1.22.x
+      - uses: actions/checkout@v4
       - name: Test
         run: go test -race ./...
 
@@ -22,11 +22,11 @@ jobs:
     name: CodeQL
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: github/codeql-action/init@v1
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v2
         with:
           languages: go
-      - uses: github/codeql-action/analyze@v1
+      - uses: github/codeql-action/analyze@v2
 
   release:
     name: Release
@@ -34,15 +34,15 @@ jobs:
     if: "contains(github.ref, 'tags/v')"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.16.x
-      - uses: actions/checkout@v2
+          go-version: 1.22.x
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install upx
         run: sudo apt install upx -y
-      - uses: goreleaser/goreleaser-action@v2
+      - uses: goreleaser/goreleaser-action@v5
         with:
           version: latest
           args: release --rm-dist
