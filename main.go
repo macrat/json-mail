@@ -95,6 +95,17 @@ func main() {
 			os.Exit(2)
 		}
 		defer f.Close()
+
+		// skip BOM if exists
+		var bom [3]byte
+		if _, err := f.Read(bom[:]); err != nil {
+			l.Error("failed to read source file: "+err.Error(), options.Source)
+		} else if bom[0] != 0xEF || bom[1] != 0xBB || bom[2] != 0xBF {
+			if _, err := f.Seek(0, 0); err != nil {
+				l.Error("failed to read source file: "+err.Error(), options.Source)
+			}
+		}
+
 		s = NewMailScanner(f)
 	}
 
