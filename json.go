@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/mail"
+	"os"
 	"strings"
 )
 
@@ -99,6 +100,11 @@ type Mail struct {
 func (m Mail) Validate() error {
 	if len(m.To) == 0 {
 		return errors.New("field `to` is required")
+	}
+	for _, a := range m.Attachments {
+		if _, err := os.Stat(a); os.IsNotExist(err) {
+			return errors.New("attachment not found: " + a)
+		}
 	}
 	return nil
 }
