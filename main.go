@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 )
 
 type Options struct {
 	Server        string
 	Username      string
 	Password      string
+	Interval      time.Duration
 	AllowInsecure bool
 	DryRun        bool
 }
@@ -27,6 +29,7 @@ func init() {
 	flag.StringVar(&options.Server, "server", "", "SMTP server address")
 	flag.StringVar(&options.Username, "username", "", "Username for login to SMTP server")
 	flag.StringVar(&options.Password, "password", "", "Password for login to SMTP server")
+	flag.DurationVar(&options.Interval, "interval", 0, "Interval to send each emails (0 means no interval)")
 	flag.BoolVar(&options.AllowInsecure, "allow-insecure", false, "Allow connection without encryption (NOT recommended)")
 	flag.BoolVar(&options.DryRun, "dry-run", false, "Run json2mail without server connection to testing json data")
 }
@@ -96,6 +99,7 @@ func main() {
 		} else {
 			l.Mail(s.Mail())
 		}
+		time.Sleep(options.Interval)
 	}
 
 	if s.Err() != nil {
