@@ -12,6 +12,7 @@ type Options struct {
 	Server        string
 	Username      string
 	Password      string
+	Source        string
 	Interval      time.Duration
 	AllowInsecure bool
 	DryRun        bool
@@ -29,6 +30,7 @@ func init() {
 	flag.StringVar(&options.Server, "server", "", "SMTP server address")
 	flag.StringVar(&options.Username, "username", "", "Username for login to SMTP server")
 	flag.StringVar(&options.Password, "password", "", "Password for login to SMTP server")
+	flag.StringVar(&options.Source, "source", "-", "Source of JSON data (file path or - for stdin)")
 	flag.DurationVar(&options.Interval, "interval", 0, "Interval to send each emails (0 means no interval)")
 	flag.BoolVar(&options.AllowInsecure, "allow-insecure", false, "Allow connection without encryption (NOT recommended)")
 	flag.BoolVar(&options.DryRun, "dry-run", false, "Run json2mail without server connection to testing json data")
@@ -85,6 +87,16 @@ func main() {
 
 	l := NewLogger(os.Stdout)
 	s := NewMailScanner(os.Stdin)
+
+	if options.Source != "" && options.Source != "-" {
+		f, err := os.Open(options.Source)
+		if err != nil {
+			l.Error("failed to open source file: "+err.Error(), options.Source)
+			os.Exit(2)
+		}
+		defer f.Close()
+		s = NewMailScanner(f)
+	}
 
 	m, err := NewMailer(options)
 	if err != nil {
