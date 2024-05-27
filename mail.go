@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"encoding/base64"
+	"path/filepath"
 	"io"
 	"net"
 	"strconv"
@@ -89,7 +91,8 @@ func (mailer *RealMailer) Send(m Mail) error {
 	m2.SetBody("text/plain", m.Body)
 
 	for _, a := range m.Attachments {
-		m2.Attach(a)
+		name := "=?UTF-8?B?" + base64.StdEncoding.EncodeToString([]byte(filepath.Base(a))) + "?="
+		m2.Attach(a, mail.Rename(name))
 	}
 
 	return mail.Send(mailer.conn, m2)
